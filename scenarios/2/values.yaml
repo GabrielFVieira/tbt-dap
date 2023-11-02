@@ -1,0 +1,22 @@
+default:
+  image:
+    repository: dev.local/otel-demo
+    tag: "1.5.1"
+
+components:
+  loadgenerator:
+    enabled: false
+
+  featureflagService:
+    enabled: false
+
+  frontend:
+    envOverrides:
+      - name: ENV_PLATFORM
+        value: "Scenario 2"
+
+  frontendProxy:
+    service:
+      type: NodePort
+      port: 8080
+      nodePort: 30000

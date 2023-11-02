@@ -1,140 +1,89 @@
-# Copyright The OpenTelemetry Authors
-# SPDX-License-Identifier: Apache-2.0
+include .env
+export
+
+##@ General
+
+help: ## Display this help.
+	@ awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-49s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Build
+
+define build
+	docker compose --env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build
+endef
+
+.PHONY: build-all
+build-all: build-first build-second build-third ## Build all scenarios images
+
+.PHONY: build-first
+build-first: ## Build the first scenario images
+	@ $(call build,1)
+
+.PHONY: build-second
+build-second: ## Build the second scenario images
+	@ $(call build,2)
+
+.PHONY: build-third
+build-third: ## Build the third scenario images
+	@ $(call build,3)
+
+##@ Docker Cluster
+
+.PHONY: stop-docker
+cluster-docker-stop: ## Stops the docker containers
+	@ docker compose --env-file ${SCENARIOS_FOLDER}/${DEFAULT_SCENARIO}/${DOCKER_ENV_FILE_NAME} down --remove-orphans --volumes
+	@ echo "OpenTelemetry Demo is stopped."
+.PHONY: start-first-docker
+start-first-docker: ## Install and start the first scenario on docker
+	@ bash scripts/start-docker-demo.sh 1
+
+.PHONY: start-second-docker
+start-second-docker: ## Install and start the second scenario on docker
+	@ bash scripts/start-docker-demo.sh 2
+
+.PHONY: start-third-docker
+start-third-docker: ## Install and start the third scenario on docker
+	@ bash scripts/start-docker-demo.sh 3
+
+##@ Kubernetes Cluster
+
+.PHONY: cluster-kind-create
+cluster-kind-create: cluster-kind-delete ## Creates a kind cluster and install the default scenario
+	@ kind create cluster --config=./scripts/cluster-config.yaml --name ${CLUSTER_NAME}
+	@ bash scripts/start-k8s-demo.sh
+
+.PHONY: cluster-kind-delete
+cluster-kind-delete: ## Deletes the kind cluster
+	@ kind delete cluster --name ${CLUSTER_NAME}
+
+.PHONY: cluster-kind-stop
+cluster-kind-stop: ## Stops the kind cluster
+	@ docker stop ${CLUSTER_NAME}-control-plane
+	@ echo "OpenTelemetry Demo is stopped."
+
+.PHONY: cluster-kind-load-images
+cluster-kind-load-images: ## Load the first scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh 1
+
+.PHONY: start-first-k8s
+start-first-k8s: ## Install and start the first scenario on a kubernetes cluster
+	@ bash scripts/start-k8s-demo.sh 1
+
+.PHONY: start-second-k8s
+start-second-k8s: ## Install and start the second scenario on a kubernetes cluster
+	@ bash scripts/start-k8s-demo.sh 2
+
+.PHONY: start-third-k8s
+start-third-k8s: ## Install and start the third scenario on a kubernetes cluster
+	@ bash scripts/start-k8s-demo.sh 3
 
 
-# All documents to be used in spell check.
-ALL_DOCS := $(shell find . -type f -name '*.md' -not -path './.github/*' -not -path '*/node_modules/*' -not -path '*/_build/*' -not -path '*/deps/*' | sort)
-PWD := $(shell pwd)
+# .PHONY: run-tests
+# run-tests:
+# 	docker compose run frontendTests
+# 	docker compose run integrationTests
+# 	docker compose run traceBasedTests
 
-TOOLS_DIR := ./internal/tools
-MISSPELL_BINARY=bin/misspell
-MISSPELL = $(TOOLS_DIR)/$(MISSPELL_BINARY)
-
-# see https://github.com/open-telemetry/build-tools/releases for semconvgen updates
-# Keep links in semantic_conventions/README.md and .vscode/settings.json in sync!
-SEMCONVGEN_VERSION=0.11.0
-
-# TODO: add `yamllint` step to `all` after making sure it works on Mac.
-.PHONY: all
-all: install-tools markdownlint misspell
-
-$(MISSPELL):
-	cd $(TOOLS_DIR) && go build -o $(MISSPELL_BINARY) github.com/client9/misspell/cmd/misspell
-
-.PHONY: misspell
-misspell:	$(MISSPELL)
-	$(MISSPELL) -error $(ALL_DOCS)
-
-.PHONY: misspell-correction
-misspell-correction:	$(MISSPELL)
-	$(MISSPELL) -w $(ALL_DOCS)
-
-.PHONY: markdownlint
-markdownlint:
-	@if ! npm ls markdownlint; then npm install; fi
-	@for f in $(ALL_DOCS); do \
-		echo $$f; \
-		npx --no -p markdownlint-cli markdownlint -c .markdownlint.yaml $$f \
-			|| exit 1; \
-	done
-
-.PHONY: install-yamllint
-install-yamllint:
-    # Using a venv is recommended
-	pip install -U yamllint~=1.30.0
-
-.PHONY: yamllint
-yamllint:
-	yamllint .
-
-.PHONY: checklicense
-checklicense:
-	@echo "Checking license headers..."
-	npx @kt3k/license-checker -q
-
-.PHONY: addlicense
-addlicense:
-	@echo "Adding license headers..."
-	npx @kt3k/license-checker -q -i
-
-# Run all checks in order of speed / likely failure.
-.PHONY: check
-check: misspell markdownlint checklicense
-	@echo "All checks complete"
-
-# Attempt to fix issues / regenerate tables.
-.PHONY: fix
-fix: misspell-correction
-	@echo "All autofixes complete"
-
-.PHONY: install-tools
-install-tools: $(MISSPELL)
-	npm install
-	@echo "All tools installed"
-
-.PHONY: build-and-push-dockerhub
-build-and-push-dockerhub:
-	docker compose --env-file .dockerhub.env -f docker-compose.yml build
-	docker compose --env-file .dockerhub.env -f docker-compose.yml push
-
-.PHONY: build-and-push-ghcr
-build-and-push-ghcr:
-	docker compose --env-file .ghcr.env -f docker-compose.yml build
-	docker compose --env-file .ghcr.env -f docker-compose.yml push
-
-.PHONY: build-env-file
-build-env-file:
-	cp .env .dockerhub.env
-	sed -i '/IMAGE_VERSION=.*/c\IMAGE_VERSION=${RELEASE_VERSION}' .dockerhub.env
-	sed -i '/IMAGE_NAME=.*/c\IMAGE_NAME=${DOCKERHUB_REPO}' .dockerhub.env
-	cp .env .ghcr.env
-	sed -i '/IMAGE_VERSION=.*/c\IMAGE_VERSION=${RELEASE_VERSION}' .ghcr.env
-	sed -i '/IMAGE_NAME=.*/c\IMAGE_NAME=${GHCR_REPO}' .ghcr.env
-
-run-tests:
-	docker compose run frontendTests
-	docker compose run integrationTests
-	docker compose run traceBasedTests
-
-run-tracetesting:
-	docker compose run traceBasedTests ${SERVICES_TO_TEST}
-
-.PHONY: generate-protobuf
-generate-protobuf:
-	./ide-gen-proto.sh
-
-.PHONY: generate-kubernetes-manifests
-generate-kubernetes-manifests:
-	helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-	helm repo update
-	echo "# Copyright The OpenTelemetry Authors" > kubernetes/opentelemetry-demo.yaml
-	echo "# SPDX-License-Identifier: Apache-2.0" >> kubernetes/opentelemetry-demo.yaml
-	echo "# This file is generated by 'make generate-kubernetes-manifests'" >> kubernetes/opentelemetry-demo.yaml
-	helm template opentelemetry-demo open-telemetry/opentelemetry-demo --namespace otel-demo | sed '/helm.sh\/chart\:/d' | sed '/helm.sh\/hook/d' | sed '/managed-by\: Helm/d' >> kubernetes/opentelemetry-demo.yaml
-
-.PHONY: start
-start:
-	docker compose up --force-recreate --remove-orphans --detach
-	@echo ""
-	@echo "OpenTelemetry Demo is running."
-	@echo "Go to http://localhost:8080 for the demo UI."
-	@echo "Go to http://localhost:8080/jaeger/ui for the Jaeger UI."
-	@echo "Go to http://localhost:8080/grafana/ for the Grafana UI."
-	@echo "Go to http://localhost:8080/loadgen/ for the Load Generator UI."
-	@echo "Go to http://localhost:8080/feature/ for the Feature Flag UI."
-
-.PHONY: start-minimal
-start-minimal:
-	docker compose -f docker-compose.minimal.yml up --force-recreate --remove-orphans --detach
-	@echo ""
-	@echo "OpenTelemetry Demo in minimal mode is running."
-	@echo "Go to http://localhost:8080 for the demo UI."
-	@echo "Go to http://localhost:8080/jaeger/ui for the Jaeger UI."
-	@echo "Go to http://localhost:8080/grafana/ for the Grafana UI."
-	@echo "Go to http://localhost:8080/loadgen/ for the Load Generator UI."
-
-.PHONY: stop
-stop:
-	docker compose down --remove-orphans --volumes
-	@echo ""
-	@echo "OpenTelemetry Demo is stopped."
+# .PHONY: run-tracetesting
+# run-tracetesting:
+# 	docker compose run traceBasedTests ${SERVICES_TO_TEST}

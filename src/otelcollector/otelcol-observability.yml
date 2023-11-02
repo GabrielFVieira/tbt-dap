@@ -1,7 +1,6 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-
 exporters:
   otlp:
     endpoint: "jaeger:4317"
@@ -12,10 +11,15 @@ exporters:
     resource_to_telemetry_conversion:
       enabled: true
     enable_open_metrics: true
+  otlphttp:
+    endpoint: "https://collector.gethelios.dev"
+    traces_endpoint: "https://collector.gethelios.dev/v1/traces"
+    headers:
+      Authorization: "{HELIOS_KEY}"
 
 service:
   pipelines:
     traces:
-      exporters: [otlp, logging, spanmetrics]
+      exporters: [otlp, logging, spanmetrics, otlphttp]
     metrics:
       exporters: [prometheus, logging]
