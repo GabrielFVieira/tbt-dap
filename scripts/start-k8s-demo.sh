@@ -24,10 +24,15 @@ if [ -z "${container}" ]; then
 fi
 
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-kubectl create ns ${DEMO_NAMESPACE}
 
-helm upgrade --install ${DEMO_CHART_NAME} open-telemetry/opentelemetry-demo -n ${DEMO_NAMESPACE} -f ${SCENARIOS_FOLDER}/${scenario}/${K8S_VALUES_FILE_NAME}
+helm upgrade --install ${DEMO_CHART_NAME} \
+    open-telemetry/opentelemetry-demo \
+    -n ${DEMO_NAMESPACE} \
+    -f ${SCENARIOS_FOLDER}/${scenario}/${K8S_VALUES_FILE_NAME} \
+    --create-namespace
+
 kubectl rollout status deployment otel-demo-frontendproxy --timeout=60s -n ${DEMO_NAMESPACE}
+kubectl rollout status deployment otel-demo-frontend --timeout=60s -n ${DEMO_NAMESPACE}
 
 if [ $? -eq 0 ]; then
     echo "OpenTelemetry Demo is running."

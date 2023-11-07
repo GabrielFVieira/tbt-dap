@@ -1,0 +1,11 @@
+type: Demo
+spec:
+  id: jAa12yVSg
+  name: "OpenTelemetry Shop"
+  type: otelstore
+  enabled: true
+  opentelemetryStore:
+    frontendEndpoint: http://otel-demo-frontend.otel-demo.svc.cluster.local:8080
+    productCatalogEndpoint: http://otel-demo-productcatalogservice.otel-demo.svc.cluster.local:8080
+    cartEndpoint: http://otel-demo-cartservice.svc.cluster.local:8080
+    checkoutEndpoint: http://otel-demo-checkoutservice.otel-demo.svc.cluster.local:8080

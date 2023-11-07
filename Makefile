@@ -6,6 +6,10 @@ export
 help: ## Display this help.
 	@ awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-49s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+.PHONY: install-dependencies
+install-dependencies:
+	@ bash scripts/install-dependencies.sh
+
 ##@ Build
 
 define build
@@ -50,6 +54,7 @@ start-third-docker: ## Install and start the third scenario on docker
 .PHONY: cluster-kind-create
 cluster-kind-create: cluster-kind-delete ## Creates a kind cluster and install the default scenario
 	@ kind create cluster --config=./scripts/cluster-config.yaml --name ${CLUSTER_NAME}
+	@ bash scripts/kind-load-images.sh
 	@ bash scripts/start-k8s-demo.sh
 
 .PHONY: cluster-kind-delete
@@ -77,6 +82,16 @@ start-second-k8s: ## Install and start the second scenario on a kubernetes clust
 start-third-k8s: ## Install and start the third scenario on a kubernetes cluster
 	@ bash scripts/start-k8s-demo.sh 3
 
+.PHONY: cluster-kind-uninstall-demo
+cluster-kind-uninstall-demo:
+	@ kubectx kind-${CLUSTER_NAME}
+	@ helm uninstall ${DEMO_CHART_NAME} -n ${DEMO_NAMESPACE}
+
+.PHONY: update-kubeconfig
+update-kubeconfig: ## Updates the kind kubeconfig
+	@ kind export kubeconfig --name ${CLUSTER_NAME}
+
+
 
 # .PHONY: run-tests
 # run-tests:
@@ -87,3 +102,10 @@ start-third-k8s: ## Install and start the third scenario on a kubernetes cluster
 # .PHONY: run-tracetesting
 # run-tracetesting:
 # 	docker compose run traceBasedTests ${SERVICES_TO_TEST}
+
+
+##@ Tools
+
+.PHONY: install-tracetest
+install-tracetest: ## Install tracetest on the kubernetes cluster
+	@ bash tools/tracetest/setup.sh

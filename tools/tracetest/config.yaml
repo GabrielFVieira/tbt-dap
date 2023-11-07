@@ -1,0 +1,4 @@
+type: Config
+spec:
+  id: current
+  analyticsEnabled: false

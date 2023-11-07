@@ -1,0 +1,9 @@
+type: PollingProfile
+spec:
+  id: current
+  name: Default
+  strategy: periodic
+  default: true
+  periodic:
+    retryDelay: 10s
+    timeout: 3m

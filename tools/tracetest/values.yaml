@@ -1,0 +1,18 @@
+telemetry:
+  exporters:
+    collector:
+      serviceName: tracetest
+      sampling: 100
+      exporter:
+        type: collector
+        collector:
+          endpoint: "otel-demo-otelcol.otel-demo.svc.cluster.local:4317"
+
+server:
+  telemetry:
+    exporter: collector
+
+service:
+  type: NodePort
+  port: 11633
+  nodePort: 30001

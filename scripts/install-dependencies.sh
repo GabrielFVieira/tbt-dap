@@ -101,3 +101,11 @@ if [ -z $(which $KIND_BIN) ]; then
 else
     echo "Kind is most likely installed"
 fi
+
+echo "8) Tracetest"
+TRACETEST_BIN=tracetest
+if [ -z $(which $TRACETEST_BIN) ]; then
+    curl -L https://raw.githubusercontent.com/kubeshop/tracetest/main/install-cli.sh | bash -s -- v0.14.5
+else
+    echo "Tracetest is most likely installed"
+fi
