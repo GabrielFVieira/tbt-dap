@@ -6,6 +6,6 @@ spec:
   enabled: true
   opentelemetryStore:
     frontendEndpoint: http://otel-demo-frontend.otel-demo.svc.cluster.local:8080
-    productCatalogEndpoint: http://otel-demo-productcatalogservice.otel-demo.svc.cluster.local:8080
-    cartEndpoint: http://otel-demo-cartservice.svc.cluster.local:8080
-    checkoutEndpoint: http://otel-demo-checkoutservice.otel-demo.svc.cluster.local:8080
+    productCatalogEndpoint: otel-demo-productcatalogservice.otel-demo.svc.cluster.local:8080
+    cartEndpoint: otel-demo-cartservice.svc.cluster.local:8080
+    checkoutEndpoint: otel-demo-checkoutservice.otel-demo.svc.cluster.local:8080
