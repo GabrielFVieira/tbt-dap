@@ -13,7 +13,8 @@ install-dependencies:
 ##@ Build
 
 define build
-	docker compose --env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build
+	cd ../${SYSTEM_REPO_NAME} && docker compose --env-file ${SCENARIOS_FOLDER}/${DOCKER_DEFAULT_ENV_FILE_NAME} \
+		--env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build
 endef
 
 .PHONY: build-all
@@ -35,8 +36,10 @@ build-third: ## Build the third scenario images
 
 .PHONY: stop-docker
 cluster-docker-stop: ## Stops the docker containers
-	@ docker compose --env-file ${SCENARIOS_FOLDER}/${DEFAULT_SCENARIO}/${DOCKER_ENV_FILE_NAME} down --remove-orphans --volumes
+	@ cd ../${SYSTEM_REPO_NAME} && docker compose \
+		--env-file ${SCENARIOS_FOLDER}/${DOCKER_DEFAULT_ENV_FILE_NAME} down --remove-orphans --volumes
 	@ echo "OpenTelemetry Demo is stopped."
+
 .PHONY: start-first-docker
 start-first-docker: ## Install and start the first scenario on docker
 	@ bash scripts/start-docker-demo.sh 1
@@ -56,6 +59,7 @@ cluster-kind-create: cluster-kind-delete ## Creates a kind cluster and install t
 	@ kind create cluster --config=./scripts/cluster-config.yaml --name ${CLUSTER_NAME}
 	@ bash scripts/kind-load-images.sh
 	@ bash scripts/start-k8s-demo.sh
+	@ make install-tracetest
 
 .PHONY: cluster-kind-delete
 cluster-kind-delete: ## Deletes the kind cluster
@@ -91,21 +95,8 @@ cluster-kind-uninstall-demo:
 update-kubeconfig: ## Updates the kind kubeconfig
 	@ kind export kubeconfig --name ${CLUSTER_NAME}
 
-
-
-# .PHONY: run-tests
-# run-tests:
-# 	docker compose run frontendTests
-# 	docker compose run integrationTests
-# 	docker compose run traceBasedTests
-
-# .PHONY: run-tracetesting
-# run-tracetesting:
-# 	docker compose run traceBasedTests ${SERVICES_TO_TEST}
-
-
 ##@ Tools
 
 .PHONY: install-tracetest
 install-tracetest: ## Install tracetest on the kubernetes cluster
-	@ bash tools/tracetest/setup.sh
+	@ bash scripts/tracetest/setup.sh

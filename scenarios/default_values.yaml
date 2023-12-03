@@ -1,0 +1,37 @@
+default:
+  image:
+    repository: dev.local/otel-demo
+
+components:
+  loadgenerator:
+    enabled: false
+
+  featureflagService:
+    enabled: true
+
+  frontendProxy:
+    service:
+      type: NodePort
+      port: 8080
+      nodePort: 30000
+# opentelemetry-collector:
+#   config:
+#     processors:
+#       attributes/environment:
+#         actions:
+#           - key: deployment.environment
+#             action: upsert
+#             value: Local
+#     exporters:
+#       otlphttp/helios:
+#         endpoint: "https://collector.gethelios.dev"
+#         traces_endpoint: "https://collector.gethelios.dev/v1/traces"
+#         headers:
+#           Authorization: "99ece9813290e19a6aee"
+#       otlphttp/jestotel:
+#         endpoint: http://host.docker.internal:4123
+#     service:
+#       pipelines:
+#         traces:
+#           processors: [memory_limiter, resource, attributes/environment, batch]
+#           exporters: [otlp, debug, spanmetrics, otlphttp/helios]

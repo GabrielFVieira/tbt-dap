@@ -28,6 +28,7 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 helm upgrade --install ${DEMO_CHART_NAME} \
     open-telemetry/opentelemetry-demo \
     -n ${DEMO_NAMESPACE} \
+    -f ${SCENARIOS_FOLDER}/${K8S_DEFAULT_VALUES_FILE_NAME} \
     -f ${SCENARIOS_FOLDER}/${scenario}/${K8S_VALUES_FILE_NAME} \
     --create-namespace
 
