@@ -13,7 +13,7 @@ install-dependencies:
 ##@ Build
 
 define build
-	cd ../${SYSTEM_REPO_NAME} && docker compose --env-file ${SCENARIOS_FOLDER}/${DOCKER_DEFAULT_ENV_FILE_NAME} \
+	cd ../${SYSTEM_REPO_NAME} && git checkout scenario${1} && docker compose --env-file ${SCENARIOS_FOLDER}/${DOCKER_DEFAULT_ENV_FILE_NAME} \
 		--env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build
 endef
 
@@ -57,7 +57,7 @@ start-third-docker: ## Install and start the third scenario on docker
 .PHONY: cluster-kind-create
 cluster-kind-create: cluster-kind-delete ## Creates a kind cluster and install the default scenario
 	@ kind create cluster --config=./scripts/cluster-config.yaml --name ${CLUSTER_NAME}
-	@ bash scripts/kind-load-images.sh
+	@ make cluster-kind-load-images
 	@ bash scripts/start-k8s-demo.sh
 	@ make install-tracetest
 
@@ -72,7 +72,7 @@ cluster-kind-stop: ## Stops the kind cluster
 
 .PHONY: cluster-kind-load-images
 cluster-kind-load-images: ## Load the first scenario images on the kind cluster
-	@ bash scripts/kind-load-images.sh 1
+	@ bash scripts/kind-load-images.sh
 
 .PHONY: start-first-k8s
 start-first-k8s: ## Install and start the first scenario on a kubernetes cluster

@@ -16,8 +16,7 @@ kubectl patch service tracetest \
     -p='[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30001}]' \
     -n ${TRACETEST_NAMESPACE}
 
-kubectl rollout status deployment tracetest --timeout=60s -n ${TRACETEST_NAMESPACE}
-
+kubectl rollout status deployment tracetest --timeout=180s -n ${TRACETEST_NAMESPACE}
 
 tracetest configure -e "http://localhost:11633"
 
