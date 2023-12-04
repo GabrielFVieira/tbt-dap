@@ -14,7 +14,7 @@ install-dependencies:
 
 define build
 	cd ../${SYSTEM_REPO_NAME} && git checkout scenario${1} && docker compose --env-file ${SCENARIOS_FOLDER}/${DOCKER_DEFAULT_ENV_FILE_NAME} \
-		--env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build
+		--env-file ${SCENARIOS_FOLDER}/${1}/${DOCKER_ENV_FILE_NAME} build --no-cache
 endef
 
 .PHONY: build-all

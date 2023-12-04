@@ -5,7 +5,7 @@ VALUES_FILE="${TRACETEST_DIR}/values.yaml"
 
 helm repo add kubeshop https://kubeshop.github.io/helm-charts
 
-helm install tracetest kubeshop/tracetest \
+helm upgrade --install tracetest kubeshop/tracetest \
     --version ${TRACETEST_CHART_VERSION} \
     -f ${VALUES_FILE} \
     -n ${TRACETEST_NAMESPACE} \

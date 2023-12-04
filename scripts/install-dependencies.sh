@@ -105,7 +105,7 @@ fi
 echo "8) Tracetest"
 TRACETEST_BIN=tracetest
 if [ -z $(which $TRACETEST_BIN) ]; then
-    curl -L https://raw.githubusercontent.com/kubeshop/tracetest/main/install-cli.sh | bash -s -- v0.14.5
+    curl -L https://raw.githubusercontent.com/kubeshop/tracetest/main/install-cli.sh | bash -s -- v0.14.8
 else
     echo "Tracetest is most likely installed"
 fi
