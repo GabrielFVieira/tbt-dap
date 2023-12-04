@@ -31,6 +31,8 @@ opentelemetry-collector:
       #     Authorization: "99ece9813290e19a6aee"
       otlphttp/jestotel:
         endpoint: http://host.docker.internal:4123
+        retry_on_failure:
+          enabled: false
       otlp/tracetest:
         endpoint: http://tracetest.tracetest.svc.cluster.local:4317
         tls:
