@@ -18,7 +18,7 @@ define build
 endef
 
 .PHONY: build-all
-build-all: build-first build-second build-third ## Build all scenarios images
+build-all: build-first build-second ## Build all scenarios images
 
 .PHONY: build-first
 build-first: ## Build the first scenario images
@@ -27,10 +27,6 @@ build-first: ## Build the first scenario images
 .PHONY: build-second
 build-second: ## Build the second scenario images
 	@ $(call build,2)
-
-.PHONY: build-third
-build-third: ## Build the third scenario images
-	@ $(call build,3)
 
 ##@ Docker Cluster
 
@@ -47,10 +43,6 @@ start-first-docker: ## Install and start the first scenario on docker
 .PHONY: start-second-docker
 start-second-docker: ## Install and start the second scenario on docker
 	@ bash scripts/start-docker-demo.sh 2
-
-.PHONY: start-third-docker
-start-third-docker: ## Install and start the third scenario on docker
-	@ bash scripts/start-docker-demo.sh 3
 
 ##@ Kubernetes Cluster
 
@@ -70,9 +62,13 @@ cluster-kind-stop: ## Stops the kind cluster
 	@ docker stop ${CLUSTER_NAME}-control-plane
 	@ echo "OpenTelemetry Demo is stopped."
 
-.PHONY: cluster-kind-load-images
-cluster-kind-load-images: ## Load the first scenario images on the kind cluster
-	@ bash scripts/kind-load-images.sh
+.PHONY: cluster-load-images-first
+cluster-load-images-first: ## Load the first scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh 1
+
+.PHONY: cluster-load-images-second
+cluster-load-images-second: ## Load the second scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh 2
 
 .PHONY: start-first-k8s
 start-first-k8s: ## Install and start the first scenario on a kubernetes cluster
@@ -81,10 +77,6 @@ start-first-k8s: ## Install and start the first scenario on a kubernetes cluster
 .PHONY: start-second-k8s
 start-second-k8s: ## Install and start the second scenario on a kubernetes cluster
 	@ bash scripts/start-k8s-demo.sh 2
-
-.PHONY: start-third-k8s
-start-third-k8s: ## Install and start the third scenario on a kubernetes cluster
-	@ bash scripts/start-k8s-demo.sh 3
 
 .PHONY: cluster-kind-uninstall-demo
 cluster-kind-uninstall-demo:
