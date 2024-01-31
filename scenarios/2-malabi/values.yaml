@@ -1,0 +1,22 @@
+default:
+  image:
+    tag: "sc2-malabi"
+
+components:
+  frontend:
+    envOverrides:
+      - name: ENV_PLATFORM
+        value: "Scenario 2 - Malabi"
+
+  checkoutService:
+    envOverrides:
+      - name: PAYMENT_SERVICE_ADDR
+        value:  'http://{{ include "otel-demo.name" . }}-paymentservice:8080'
+
+  paymentService:
+    resources:
+      limits:
+        memory: 256Mi
+    ports:
+      - name: malabi-port
+        value: 18393

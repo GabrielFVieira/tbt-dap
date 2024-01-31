@@ -18,7 +18,7 @@ define build
 endef
 
 .PHONY: build-all
-build-all: build-first build-second ## Build all scenarios images
+build-all: build-first build-second build-first-malabi build-second-malabi ## Build all scenarios images
 
 .PHONY: build-first
 build-first: ## Build the first scenario images
@@ -27,6 +27,14 @@ build-first: ## Build the first scenario images
 .PHONY: build-second
 build-second: ## Build the second scenario images
 	@ $(call build,2)
+
+.PHONY: build-first-malabi
+build-first-malabi: ## Build the first scenario images for Malabi
+	@ $(call build,1-malabi)
+
+.PHONY: build-second-malabi
+build-second-malabi: ## Build the second scenario images for Malabi
+	@ $(call build,2-malabi)
 
 ##@ Docker Cluster
 
@@ -44,12 +52,20 @@ start-first-docker: ## Install and start the first scenario on docker
 start-second-docker: ## Install and start the second scenario on docker
 	@ bash scripts/start-docker-demo.sh 2
 
+.PHONY: start-first-malabi-docker
+start-first-malabi-docker: ## Install and start the first Malabi scenario on docker
+	@ bash scripts/start-docker-demo.sh 1-malabi
+
+.PHONY: start-second-malabi-docker
+start-second-malabi-docker: ## Install and start the second Malabi scenario on docker
+	@ bash scripts/start-docker-demo.sh 2-malabi
+
 ##@ Kubernetes Cluster
 
 .PHONY: cluster-kind-create
 cluster-kind-create: cluster-kind-delete ## Creates a kind cluster and install the default scenario
 	@ kind create cluster --config=./scripts/cluster-config.yaml --name ${CLUSTER_NAME}
-	@ make cluster-kind-load-images
+	@ make cluster-load-images
 	@ bash scripts/start-k8s-demo.sh
 	@ make install-tracetest
 
@@ -62,6 +78,10 @@ cluster-kind-stop: ## Stops the kind cluster
 	@ docker stop ${CLUSTER_NAME}-control-plane
 	@ echo "OpenTelemetry Demo is stopped."
 
+.PHONY: cluster-load-images
+cluster-load-images: ## Load the first scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh ${DEFAULT_SCENARIO}
+
 .PHONY: cluster-load-images-first
 cluster-load-images-first: ## Load the first scenario images on the kind cluster
 	@ bash scripts/kind-load-images.sh 1
@@ -70,13 +90,29 @@ cluster-load-images-first: ## Load the first scenario images on the kind cluster
 cluster-load-images-second: ## Load the second scenario images on the kind cluster
 	@ bash scripts/kind-load-images.sh 2
 
+.PHONY: cluster-load-images-first-malabi
+cluster-load-images-first-malabi: ## Load the first Malabi scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh 1-malabi
+
+.PHONY: cluster-load-images-second-malabi
+cluster-load-images-second-malabi: ## Load the second Malabi scenario images on the kind cluster
+	@ bash scripts/kind-load-images.sh 2-malabi
+
 .PHONY: start-first-k8s
-start-first-k8s: ## Install and start the first scenario on a kubernetes cluster
+start-first-k8s: cluster-load-images-first ## Install and start the first scenario on a kubernetes cluster
 	@ bash scripts/start-k8s-demo.sh 1
 
 .PHONY: start-second-k8s
-start-second-k8s: ## Install and start the second scenario on a kubernetes cluster
+start-second-k8s: cluster-load-images-second ## Install and start the second scenario on a kubernetes cluster
 	@ bash scripts/start-k8s-demo.sh 2
+
+.PHONY: start-first-malabi-k8s
+start-first-malabi-k8s: cluster-load-images-first-malabi ## Install and start the first Malabi scenario on a kubernetes cluster
+	@ bash scripts/start-k8s-demo.sh 1-malabi
+
+.PHONY: start-second-malabi-k8s
+start-second-malabi-k8s: cluster-load-images-second-malabi ## Install and start the second Malabi scenario on a kubernetes cluster
+	@ bash scripts/start-k8s-demo.sh 2-malabi
 
 .PHONY: cluster-kind-uninstall-demo
 cluster-kind-uninstall-demo:
