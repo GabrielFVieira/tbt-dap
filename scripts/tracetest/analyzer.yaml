@@ -1,0 +1,5 @@
+type: Analyzer
+spec:
+  id: current
+  name: analyzer
+  enabled: false
